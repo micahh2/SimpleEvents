@@ -23,13 +23,13 @@ const Event = sequelize.import('./event');
 
 // Routes
 // home, list, update, add, delete
-router.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
 router.get('/list', function (req, res) {
     Event.findAll().then(function (data) {
       res.json(data);
     });
+});
+router.get('*', function (req, res) {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 app.use('/bin', express.static('bin'));
 app.use('/', router);

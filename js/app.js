@@ -1,53 +1,105 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const request = require('superagent');
-const promise = require('redux-promise-middleware');
-import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router, Route, Link, browserHistory } from 'react-router'
+import request from 'superagent';
+import * as _ from 'lodash';
 
-const getInitialState = function () {
-  return { 
-    events: [],
-    isFetching: false,
-    lastFetched: null,
-    error:null,
-  };
+const categories = { "Fun": 0, "Sad": 1, "Normal": 2, "Cancelled": 3, };
+let events = [];
+const fetch = (r) => {
+  request.get('/list').then((resp) => {
+    events = resp.body;
+    r();
+  });
 }
 
-const reduce = (state = getInitialState(), action) => {
-  switch(action.type) {
-    case "FETCH_EVENTS_PENDING":
-      return {...state, isFetching:true, events:reduceEvents(state.events, };
-    case "FETCH_EVENTS_FULFILLED":
-      return {...state, isFetching:false, lastFetched: new Date(), events: action.payload,};
-    case "FETCH_EVENTS_REJECTED":
-      return {...state, isFetching:false, error: action.payload,};
-  }
-  return {...state,};
-}
+const EventSummary = React.createClass({
+  onClick(e) {
+    console.log('Click!');
+  },
+  render() {
+    let ev = this.props.event;
+    return <div onClick={ this.onClick }>
+      <h2>{ ev.title }</h2>
+      <p>
+        { ev.description }
+        <br/><i>Created: { ev.createdAt }</i>
+        <br/><i>Updated: { ev.createdAt }</i>
+      </p>
+    </div>  
+  },
+});
 
-const reduceEvents = (state = [], action) => {
-  switch(action.type) {
-    case 'ADD':
-    case 'REMOVE':
-      throw 'Not Implemented';
-      break;
-    default:
-      return state;
-  }
-}
+const NoMatch = React.createClass({
+  render() {
+    return <h2>Not Found :(</h2>
+  },
+});
+    
+const DetailView = React.createClass({
+  getInitialState() {
+    let id = parseInt(this.props.params.id);
+    let event = _.find(events, { id });
+    return {
+      event: {...event}
+    }
+  },
+  render() {
+    let ev = this.state.event;
+    let radio = [];
+    for(let i of categories.map((val, key) => { return { val, key }; }))
+      radio.push(<input type="radio" value="category" checked={ ev == i.key}>i.val</input>)
 
-applyMiddleware(promise());
-const store = createStore(reduce, );
+    return <div>
+      <input type="text" value={ ev.title }/>
+      <br/><textarea value={ ev.description | ""}></textarea>
+      <br/><input type="button" value="Submit"/>
+      <br/>{ radio }
+      <br/><i>Created: { ev.createdAt }</i>
+      <br/><i>Updated: { ev.createdAt }</i>
+    </div>  
+  },
+});
+
+const ListView = React.createClass({
+  getInitialState() {
+    return { events };
+  }, 
+  render() {
+    let rows = [];
+    for (let event of this.state.events) {
+      rows.push(<li>
+        <Link to={ `/event/${event.id}` }>
+          <EventSummary event={ event }/>
+        </Link>
+      </li>);
+    }
+    return <ul> {rows} </ul>
+  },
+});
+
+const App = React.createClass({
+  render() { 
+    let body = this.props.children;
+    if(!body) 
+      body = <ListView {...this.props}/>
+
+    return <div>
+      <h1>Events</h1>
+      { body }
+    </div>
+  },
+});
+
 const render = () => {
   ReactDOM.render(
-    <Provider store={store}>
-      <div>
-        Hello World! {store.isFetching}
-      </div>
-    </Provider>,
-    document.getElementById('container'));
+      <Router history={ browserHistory }>
+        <Route path="/" component={ App }>
+          <Route path="event/:id" component={ DetailView }/>
+          <Route path="*" component={NoMatch}/>
+        </Route>
+      </Router>,
+      document.getElementById('container'));
 }
 
-store.subscribe(render);
-render();
+fetch(render);

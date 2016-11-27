@@ -23,11 +23,5 @@ module.exports = function (sequelize, DataTypes) {
     featured: {
       type: DataTypes.BOOLEAN,
     },
-    createdDate: {
-      type: DataTypes.DATE,
-    },
-    updatedDate: {
-      type: DataTypes.DATE,
-    },
   });
 };
