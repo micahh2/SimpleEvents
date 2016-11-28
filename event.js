@@ -3,8 +3,9 @@
 // featured    flag,   created at
 // timestamp,    updated at  timestamp
 
-module.exports = function (sequelize, DataTypes) {
-  return sequelize.define('event', {
+// I should have added some default values / validation
+module.exports =
+  (sequelize, DataTypes) => sequelize.define('event', {
     title: {
       type: DataTypes.STRING,
     },
@@ -24,4 +25,3 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.BOOLEAN,
     },
   });
-};
