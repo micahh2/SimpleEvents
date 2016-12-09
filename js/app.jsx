@@ -3,6 +3,18 @@ import ReactDOM from 'react-dom';
 import { Router, Route, Link, browserHistory } from 'react-router';
 import request from 'superagent';
 import * as _ from 'lodash';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import { List, ListItem } from 'material-ui/List';
+import TextField from 'material-ui/TextField';
+import DatePicker from 'material-ui/DatePicker';
+import Checkbox from 'material-ui/Checkbox';
+import FlatButton from 'material-ui/FlatButton';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
+import injectTapEventPlugin from 'react-tap-event-plugin';
+
+// Needed for onTouchTap
+// // http://stackoverflow.com/a/34015469/988941
+injectTapEventPlugin();
 
 const categories = { Fun: 0, Sad: 1, Normal: 2, Canceled: 3 };
 
@@ -50,8 +62,6 @@ function NoMatch() {
   return <h2>Not Found :(</h2>;
 }
 
-// You'll notice that I've not caught any errors, 
-// I promise you that it tears me up a little bit inside
 class DetailView extends React.Component {
   constructor(props) {
     super(props);
@@ -66,13 +76,16 @@ class DetailView extends React.Component {
   }
   updateEvent(key, filter) {
     const dv = this;
-    return (e) => {
-      let val = e.target.value;
-      if (e.target.type === 'checkbox') {
-        val = e.target.checked;
-      }
-      if (typeof filter === 'function') {
-        val = filter(e.target.value);
+    return (e, otherValue) => {
+      let val = otherValue;
+      if (typeof val === 'undefined') {
+        val = e.target.value;
+        if (e.target.type === 'checkbox') {
+          val = e.target.checked;
+        }
+        if (typeof filter === 'function') {
+          val = filter(e.target.value);
+        }
       }
       this.state.event[key] = val;
       this.state.event.updatedAt = new Date();
@@ -88,29 +101,20 @@ class DetailView extends React.Component {
     const ev = this.state.event;
     const radio = [];
     _.each(categories, (val, key) => {
-      const id = `cat${val}`;
-      radio.push(<input
-        id
-        type="radio"
-        name="category"
-        checked={ev.category === val}
-        onChange={this.updateEvent('category', parseInt)}
-        value={val}
-      />);
-      radio.push(<label htmlFor={id}>{key}</label>);
+      const buttonID = `cat${val}`;
+      radio.push(<RadioButton id={buttonID} label={key} name="category" value={val} />);
     });
     return (<div>
-      <input type="text" value={ev.title} onChange={this.updateEvent('title')} />
-      <br /><textarea value={ev.description} onChange={this.updateEvent('description')} />
-      <br /><label htmlFor="start" >Start Date</label>
-      <br /><input id="start" type="date" value={ev.startDate} onChange={this.updateEvent('startDate')} />
-      <br /><label htmlFor="end">End Date</label>
-      <br /><input id="end" type="date" value={ev.endDate} onChange={this.updateEvent('endDate')} />
-      <br />{ radio }
-      <br /><input id="feat" type="checkbox" checked={!!ev.featured} onChange={this.updateEvent('featured')} />
-      <label htmlFor="feat">Featured</label>
+      <TextField hintText="Title" value={ev.title} onChange={this.updateEvent('title')} />
+      <br /><TextField hintText="Description" multiLine value={ev.description} onChange={this.updateEvent('description')} />
+      <br /><DatePicker hintText="Start Date" autoOk value={ev.startDate} onChange={this.updateEvent('startDate')} />
+      <br /><DatePicker hintText="End Date" autoOk value={ev.endDate} onChange={this.updateEvent('endDate')} />
+      <br /><RadioButtonGroup defaultSelected={ev.category} onChange={this.updateEvent('category', parseInt)}>{ radio }</RadioButtonGroup>
+      <br /><Checkbox label="Featured" checked={!!ev.featured} onCheck={this.updateEvent('featured')} />
       <br />
-      <Link to="/">Go Back</Link> | <Link to="/" onClick={this.deleteEvent}>Delete Event</Link>
+      <FlatButton onClick={() => browserHistory.push('/')} label="Go Back" />
+      <span> | </span>
+      <FlatButton onClick={this.deleteEvent} label="Delete Event" secondary />
       <br /><i>Created: {ev.createdAt}</i>
       <br /><i>Updated: {ev.updatedAt}</i>
     </div>);
@@ -122,8 +126,6 @@ DetailView.propTypes = {
   }).isRequired,
 };
 
-// There's a bug in here I introduced at somepoint when
-// I was refactoring. 
 class ListView extends React.Component {
   constructor(props) {
     super(props);
@@ -139,10 +141,10 @@ class ListView extends React.Component {
   }
   render() {
     const rows = _.map(this.state.events,
-      ev => <li><EventSummary event={ev} /></li>,
+      ev => <ListItem><EventSummary event={ev} /></ListItem>,
     );
     return (<div>
-      <ul> {rows} </ul>
+      <List> {rows} </List>
       <a href="#addEvent" onClick={this.addEvent}>Add Event</a>
     </div>);
   }
@@ -175,12 +177,14 @@ App.propTypes = {
 
 const render = () => {
   ReactDOM.render(
-    <Router history={browserHistory}>
-      <Route path="/" component={App}>
-        <Route path="event/:id" component={DetailView} />
-        <Route path="*" component={NoMatch} />
-      </Route>
-    </Router>,
+    <MuiThemeProvider>
+      <Router history={browserHistory}>
+        <Route path="/" component={App}>
+          <Route path="event/:id" component={DetailView} />
+          <Route path="*" component={NoMatch} />
+        </Route>
+      </Router>
+    </MuiThemeProvider>,
     document.getElementById('container'));
 };
 

@@ -18,9 +18,10 @@ const handleCompErrors = createErrorHandler('Compile Error');
 
 gulp.task('js', () => {
   browserify({
-    debug: true,
+    debug: false,
     entries: 'js/app.jsx',
-  }).transform(babelify, { presets: ['es2015', 'react', 'stage-2'] })
+  })
+  .transform(babelify, { presets: ['es2015', 'react', 'stage-2'] })
   .bundle()
   .on('error', handleCompErrors)
   .pipe(source('bundle.js'))
