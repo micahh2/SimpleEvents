@@ -25,7 +25,7 @@ const sequelize = new Sequelize({
 const Event = sequelize.import('./event');
 
 // Routes
-// The API is horrible: no error 
+// The API is horrible: no error
 // handling at all
 router.get('/list', (req, res) => {
   Event.findAll().then((data) => {

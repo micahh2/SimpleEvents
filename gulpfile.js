@@ -4,6 +4,8 @@ const browserify = require('browserify');
 const babelify = require('babelify');
 const source = require('vinyl-source-stream');
 
+const javascript = ['js/*.jsx', 'js/**/*.jsx'];
+
 function createErrorHandler(title) {
   return function errorHandler(...args) {
     notify.onError({
@@ -29,7 +31,7 @@ gulp.task('js', () => {
 });
 
 gulp.task('watch', () => {
-  gulp.watch(['js/*.js', 'js/*.jsx'], ['js']);
+  gulp.watch(javascript, ['js']);
 });
 
 gulp.task('default', ['watch', 'js']);

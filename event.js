@@ -11,9 +11,11 @@ module.exports =
     },
     startDate: {
       type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
     endDate: {
       type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
     category: {
       type: DataTypes.INTEGER,
