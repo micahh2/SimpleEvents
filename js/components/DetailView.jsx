@@ -16,7 +16,7 @@ const mapStateToProps = (state, ownProps) => ({
   isLoading: state.eventState.isLoading,
 });
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
+const mapDispatchToProps = dispatch => ({
   deleteEvent: (id) => {
     request.post('/delete', { id }).then(() => {
       dispatch({ type: 'LOAD_DELETE' });
@@ -24,18 +24,29 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     browserHistory.push('/');
     dispatch({ type: 'REMOVE_EVENT', id });
   },
-  updateEvent: (key, filter) => (e, otherValue) => {
-    let val = otherValue;
-    if (typeof val === 'undefined') {
-      val = e.target.value;
-      if (e.target.type === 'checkbox') {
-        val = e.target.checked;
+  updateEvent: (key, event, filter) => {
+    let updateRequest;
+    return (e, otherValue) => {
+      const nEvent = { ...event };
+      let val = otherValue;
+      if (typeof val === 'undefined') {
+        val = e.target.value;
+        if (e.target.type === 'checkbox') {
+          val = e.target.checked;
+        }
+        if (typeof filter === 'function') {
+          val = filter(e.target.value);
+        }
       }
-      if (typeof filter === 'function') {
-        val = filter(e.target.value);
-      }
-    }
-    dispatch({ type: 'UPDATE_EVENT', id: ownProps.params.id, key, val });
+      nEvent[key] = val;
+      clearTimeout(updateRequest);
+      updateRequest = setTimeout(() => {
+        request
+          .post('/update', nEvent)
+          .then(() => dispatch({type: 'FINISH_UPDATE'}));
+      }, 1000);
+      dispatch({ type: 'UPDATE_EVENT', id: event.id, key, val });
+    };
   },
   goHome: () => browserHistory.push('/'),
 });
@@ -51,12 +62,12 @@ function DetailView(props) {
     radio.push(<RadioButton id={buttonID} label={t.title} name="category" value={t.value} />);
   });
   return (<div>
-    <TextField hintText="Title" value={ev.title} onChange={props.updateEvent('title')} />
-    <br /><TextField hintText="Description" multiLine value={ev.description} onChange={props.updateEvent('description')} />
-    <br /><DatePicker hintText="Start Date" autoOk value={new Date(ev.startDate)} onChange={props.updateEvent('startDate')} />
-    <br /><DatePicker hintText="End Date" autoOk value={new Date(ev.endDate)} onChange={props.updateEvent('endDate')} />
-    <br /><RadioButtonGroup name="Category" defaultSelected={ev.category} onChange={props.updateEvent('category', parseInt)}>{ radio }</RadioButtonGroup>
-    <br /><Checkbox label="Featured" checked={!!ev.featured} onCheck={props.updateEvent('featured')} />
+    <TextField hintText="Title" value={ev.title} onChange={props.updateEvent('title', ev)} />
+    <br /><TextField hintText="Description" multiLine value={ev.description} onChange={props.updateEvent('description', ev)} />
+    <br /><DatePicker hintText="Start Date" autoOk value={new Date(ev.startDate)} onChange={props.updateEvent('startDate', ev)} />
+    <br /><DatePicker hintText="End Date" autoOk value={new Date(ev.endDate)} onChange={props.updateEvent('endDate', ev)} />
+    <br /><RadioButtonGroup name="Category" defaultSelected={ev.category} onChange={props.updateEvent('category', ev, parseInt)}>{ radio }</RadioButtonGroup>
+    <br /><Checkbox label="Featured" checked={!!ev.featured} onCheck={props.updateEvent('featured', ev)} />
     <br />
     <FlatButton onClick={props.goHome} label="Go Back" />
     <span> | </span>

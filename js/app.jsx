@@ -25,7 +25,6 @@ function eventsReducer(state = getDefaultState(), action) {
     case 'REMOVE_EVENT':
       return { ...state, events: state.events.filter(t => t.id !== action.id) };
     case 'UPDATE_EVENT':
-      console.log("Updating Event: ", action.key, ", ", action.val);
       return {
         ...state,
         events: state.events.map((t) => {
@@ -35,11 +34,14 @@ function eventsReducer(state = getDefaultState(), action) {
             return newEvent;
           }
           return t;
-        }) };
+        }),
+      };
     case 'LOAD_EVENT':
       return { ...state, events: state.events.concat(action.event), isLoading: false };
     case 'LOAD_EVENTS':
-      return { ...state, events: action.events, isLoading: false};
+      return { ...state, events: action.events, isLoading: false };
+    case 'FINISH_UPDATE':
+      return { ...state };
     default:
       return state;
   }

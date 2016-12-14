@@ -2,6 +2,7 @@ import React from 'react';
 import * as _ from 'lodash';
 import { connect } from 'react-redux';
 import { List, ListItem } from 'material-ui/List';
+import FlatButton from 'material-ui/FlatButton';
 import { Link, browserHistory } from 'react-router';
 import request from 'superagent';
 
@@ -43,7 +44,7 @@ function ListView(props) {
   );
   return (<div>
     <List> {rows} </List>
-    <a onClick={props.addEvent}>Add Event</a>
+    <FlatButton onClick={props.addEvent}>Add Event</FlatButton>
   </div>);
 }
 ListView.propTypes = {
